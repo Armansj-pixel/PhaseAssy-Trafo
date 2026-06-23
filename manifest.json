@@ -2,7 +2,7 @@
   "name": "TrafoTrack — Phase Assembly",
   "short_name": "TrafoTrack",
   "description": "Monitoring Phase/Coil Assembly — Elsewedy Electric Indonesia",
-  "start_url": "/",
+  "start_url": "/PhaseAssy-Trafo/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0B0E11",
