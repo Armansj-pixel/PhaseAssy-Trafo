@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B0E11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TrafoTrack">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="TrafoTrack">
+<meta name="description" content="Monitoring Phase/Coil Assembly — Elsewedy Electric Indonesia">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<title>TrafoTrack — Phase Assembly</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0B0E11;
+  --panel:    #1A1F26;
+  --panel2:   #232A33;
+  --border:   rgba(255,255,255,0.07);
+  --text:     #F5F3EE;
+  --muted:    #8B93A1;
+  --orange:   #FF6B00;
+  --teal:     #2DD4BF;
+  --yellow:   #EAB308;
+  --red:      #EF4444;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100dvh;overflow-x:hidden;}
+.font-mono{font-family:'JetBrains Mono','Courier New',monospace;}
+/* ── Layout ── */
+#app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:auto;position:relative;}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.screen.active{display:flex;}
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+/* ── Top bar ── */
+.topbar{padding:16px 16px 12px;border-bottom:1px solid var(--border);}
+.topbar .label{font-size:10px;font-family:monospace;letter-spacing:.2em;color:var(--orange);margin-bottom:2px;}
+.topbar h1{font-size:22px;font-weight:800;margin:0;}
+.topbar h2{font-size:17px;font-weight:700;margin:0;line-height:1.2;}
+/* ── Bottom nav ── */
+.bottom-nav{display:flex;border-top:1px solid var(--border);}
+.bottom-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;background:none;border:none;color:var(--muted);font-size:10px;font-weight:600;}
+.bottom-nav button.active{color:var(--orange);}
+.bottom-nav button i{font-size:20px;}
+/* ── Cards ── */
+.card-unit{background:var(--panel);border-radius:14px;padding:16px;border:1px solid var(--border);cursor:pointer;transition:transform .1s;width:100%;}
+.card-unit:active{transform:scale(.98);}
+/* ── Progress bar ── */
+.prog-bar{height:5px;background:var(--panel2);border-radius:10px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:10px;transition:width .4s;}
+/* ── Tab bar (detail) ── */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;padding:10px 14px;background:none;border:none;color:var(--muted);font-size:11px;font-weight:700;position:relative;white-space:nowrap;}
+.tab-btn.active{color:var(--orange);}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:8px;right:8px;height:2px;background:var(--orange);border-radius:2px;}
+/* ── Form rows ── */
+.row-item{background:var(--panel);border-radius:10px;border:1px solid var(--border);margin-bottom:8px;overflow:hidden;}
+.row-item.done{background:rgba(45,212,191,.08);border-color:rgba(45,212,191,.3);}
+.row-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.row-body{padding:12px;background:var(--bg);border-top:1px solid var(--border);}
+/* ── Inputs ── */
+.form-control,.form-select{background:var(--panel2)!important;border:1px solid var(--border)!important;color:var(--text)!important;font-size:13px;}
+.form-control::placeholder{color:var(--muted);}
+.form-control:focus,.form-select:focus{box-shadow:0 0 0 2px rgba(255,107,0,.3)!important;border-color:var(--orange)!important;}
+.form-control-sm{font-size:12px!important;padding:6px 8px!important;}
+.input-nom{font-size:10px;color:var(--muted);margin-bottom:3px;}
+/* ── Badges ── */
+.badge-status{font-size:9px;font-family:monospace;font-weight:700;padding:2px 6px;border-radius:4px;}
+.badge-aktif{background:var(--orange);color:#000;}
+.badge-antrian{background:var(--muted);color:#000;}
+.badge-selesai{background:var(--teal);color:#000;}
+.badge-mod{background:var(--yellow);color:#000;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;}
+/* ── Yes/No toggle ── */
+.yn-group{display:flex;gap:4px;}
+.yn-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--muted);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.yn-btn.y-active{background:var(--teal);color:#000;border-color:var(--teal);}
+.yn-btn.n-active{background:var(--red);color:#fff;border-color:var(--red);}
+/* ── Shift picker ── */
+.shift-btn{flex:1;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:11px;font-weight:700;padding:7px 4px;display:flex;align-items:center;justify-content:center;gap:4px;}
+.shift-btn.active{background:var(--orange);color:#000;border-color:var(--orange);}
+.worker-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:11px;font-weight:500;}
+.worker-btn.active{background:rgba(45,212,191,.2);color:var(--teal);border-color:rgba(45,212,191,.4);}
+/* ── Login ── */
+#screen-login{justify-content:center;align-items:center;}
+.login-card{background:var(--panel);border-radius:20px;padding:32px 24px;width:100%;max-width:340px;border:1px solid var(--border);}
+.pin-display{font-size:28px;letter-spacing:12px;text-align:center;color:var(--text);height:48px;display:flex;align-items:center;justify-content:center;}
+.pin-dot{width:12px;height:12px;border-radius:50%;background:var(--border);margin:0 4px;}
+.pin-dot.filled{background:var(--orange);}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.key-btn{background:var(--panel2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:20px;font-weight:600;padding:14px;cursor:pointer;transition:background .1s;}
+.key-btn:active{background:var(--orange);color:#000;}
+/* ── Alert ── */
+.tt-alert{padding:10px 12px;border-radius:10px;font-size:12px;display:flex;align-items:flex-start;gap:8px;}
+.tt-alert.warn{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);color:var(--text);}
+.tt-alert.danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);}
+/* ── Misc ── */
+.section-label{font-size:10px;font-family:monospace;letter-spacing:.12em;color:var(--muted);margin-bottom:8px;margin-top:4px;}
+.btn-orange{background:var(--orange);color:#000;font-weight:700;border:none;border-radius:10px;padding:11px;}
+.btn-orange:hover{background:#e05d00;color:#000;}
+.btn-orange:disabled{background:var(--panel2);color:var(--muted);}
+.btn-teal{background:rgba(45,212,191,.15);color:var(--teal);border:1px solid rgba(45,212,191,.3);border-radius:10px;padding:10px;font-weight:700;}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:10px;}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.spinner-wrap{display:flex;justify-content:center;padding:40px;}
+.mod-card{background:var(--panel);border-radius:12px;padding:14px;border:1px solid rgba(234,179,8,.2);}
+.form-badge{background:rgba(255,107,0,.12);color:var(--orange);border:1px solid rgba(255,107,0,.2);border-radius:6px;font-size:10px;font-family:monospace;font-weight:700;padding:2px 7px;}
+/* ── Checklist table ── */
+.chk-table{border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.chk-row{display:grid;gap:0;border-bottom:1px solid var(--border);}
+.chk-row:last-child{border-bottom:none;}
+.chk-row.header{background:var(--bg);}
+.chk-cell{padding:8px 10px;font-size:11px;}
+/* ── Ref search ── */
+.search-wrap{position:relative;}
+.search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.search-wrap input{padding-left:36px;}
+/* ── Toast ── */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;}
+/* ── Winding normal/tight ── */
+.nt-btn{flex:1;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:11px;font-weight:700;padding:7px 4px;}
+.nt-btn.normal-active{background:var(--teal);color:#000;border-color:var(--teal);}
+.nt-btn.tight-active{background:var(--yellow);color:#000;border-color:var(--yellow);}
+/* ── Responsive desktop ── */
+@media(min-width:640px){
+  body{background:#060809;}
+  #app{box-shadow:0 0 60px rgba(0,0,0,.6);border-left:1px solid var(--border);border-right:1px solid var(--border);}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- Offline banner -->
+<div id="offline-banner" class="d-none" style="background:#EAB308;color:#000;text-align:center;padding:6px 12px;font-size:12px;font-weight:700;z-index:9998">
+  <i class="bi bi-wifi-off me-1"></i>Offline — data akan tersinkronisasi saat online
+</div>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="text-center mb-4">
+      <div class="font-mono text-xs mb-1" style="color:var(--orange);letter-spacing:.2em">ELSEWEDY ELECTRIC</div>
+      <h1 class="h4 fw-800 mb-0">TrafoTrack</h1>
+      <div class="small text-muted">Phase / Coil Assembly</div>
+    </div>
+    <div class="mb-3">
+      <label class="section-label">PILIH NAMA</label>
+      <select id="login-name" class="form-select mb-3" onchange="updateLoginName()">
+        <option value="">— Pilih nama —</option>
+      </select>
+      <label class="section-label">PIN (4 digit)</label>
+      <div class="pin-display" id="pin-display">
+        <div class="pin-dot" id="d0"></div>
+        <div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div>
+        <div class="pin-dot" id="d3"></div>
+      </div>
+      <div class="keypad">
+        <button class="key-btn" onclick="pinKey(1)">1</button>
+        <button class="key-btn" onclick="pinKey(2)">2</button>
+        <button class="key-btn" onclick="pinKey(3)">3</button>
+        <button class="key-btn" onclick="pinKey(4)">4</button>
+        <button class="key-btn" onclick="pinKey(5)">5</button>
+        <button class="key-btn" onclick="pinKey(6)">6</button>
+        <button class="key-btn" onclick="pinKey(7)">7</button>
+        <button class="key-btn" onclick="pinKey(8)">8</button>
+        <button class="key-btn" onclick="pinKey(9)">9</button>
+        <button class="key-btn" onclick="pinClear()" style="font-size:13px">C</button>
+        <button class="key-btn" onclick="pinKey(0)">0</button>
+        <button class="key-btn" onclick="pinBack()"><i class="bi bi-backspace" style="font-size:16px"></i></button>
+      </div>
+    </div>
+    <button class="btn btn-orange w-100" id="login-btn" onclick="doLogin()" disabled>Masuk</button>
+    <div id="login-error" class="text-danger text-center mt-2 small"></div>
+  </div>
+</div>
+
+<!-- ══════════ MAIN ══════════ -->
+<div id="screen-main" class="screen">
+  <!-- Top bar -->
+  <div class="topbar d-flex justify-content-between align-items-start">
+    <div>
+      <div class="label">PHASE / COIL ASSEMBLY</div>
+      <h1 id="main-title" class="text-white">Unit Trafo</h1>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="text-end">
+        <div class="fw-600" style="font-size:13px" id="user-name-display">—</div>
+        <div class="font-mono" style="font-size:10px;color:var(--muted)" id="user-shift-display">—</div>
+      </div>
+      <button id="btn-install-pwa" class="btn btn-sm d-none" style="color:var(--teal);border:1px solid rgba(45,212,191,.3);border-radius:8px;font-size:11px;padding:4px 8px" onclick="promptInstall()">
+        <i class="bi bi-download me-1"></i>Install
+      </button>
+      <button class="btn btn-sm" style="color:var(--muted)" onclick="doLogout()"><i class="bi bi-box-arrow-right fs-5"></i></button>
+    </div>
+  </div>
+
+  <!-- UNIT LIST -->
+  <div id="view-units" class="scroll-area px-3 pt-3 pb-3">
+    <div id="unit-list-container"></div>
+    <button id="btn-add-unit" class="btn btn-orange w-100 d-none mt-2" onclick="showAddUnit()">
+      <i class="bi bi-plus-lg me-2"></i>Tambah Unit Baru
+    </button>
+  </div>
+
+  <!-- REFERENSI -->
+  <div id="view-referensi" class="scroll-area px-3 pt-3 pb-3 d-none">
+    <div class="search-wrap mb-3">
+      <i class="bi bi-search"></i>
+      <input id="ref-search-input" class="form-control" placeholder="Cari No. Trafo, mis. 250034" oninput="doRefSearch()">
+    </div>
+    <div id="ref-results">
+      <div class="text-center py-5" style="color:var(--muted)">
+        <i class="bi bi-archive fs-1 d-block mb-2 opacity-25"></i>
+        <small>Masukkan No. Trafo untuk lihat unit-unit serial terdahulu.</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS (admin only) -->
+  <div id="view-settings" class="scroll-area px-3 pt-3 pb-3 d-none">
+    <div class="pt-2 pb-3">
+      <div class="label">ADMIN</div>
+      <h1 class="text-white" style="font-size:22px;font-weight:800">Pengaturan</h1>
+    </div>
+
+    <!-- Kelola Operator -->
+    <div class="section-label">KELOLA OPERATOR</div>
+    <div id="settings-users-list" class="mb-2"></div>
+    <button class="btn btn-orange w-100 mb-4" style="font-size:13px" onclick="showAddUserForm()">
+      <i class="bi bi-person-plus me-1"></i>Tambah Operator
+    </button>
+    <div id="add-user-form" class="d-none mb-4 p-3" style="background:var(--panel);border-radius:12px;border:1px solid var(--border)">
+      <div class="section-label">OPERATOR BARU</div>
+      <div class="row g-2 mb-2">
+        <div class="col-7"><label class="input-nom">Nama</label><input id="nu-name" class="form-control form-control-sm" placeholder="Nama operator"></div>
+        <div class="col-5"><label class="input-nom">PIN (4 digit)</label><input id="nu-pin" class="form-control form-control-sm" type="number" maxlength="4" placeholder="1234"></div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="input-nom">Role</label>
+          <select id="nu-role" class="form-select form-select-sm">
+            <option value="operator">Operator</option>
+            <option value="admin">Admin/Foreman</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="input-nom">Shift Default</label>
+          <select id="nu-shift-default" class="form-select form-select-sm">
+            <option value="Pagi">Pagi</option>
+            <option value="Malam">Malam</option>
+          </select>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-ghost flex-grow-1" onclick="hideAddUserForm()">Batal</button>
+        <button class="btn btn-orange flex-grow-1" onclick="submitAddUser()">Simpan</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Kelola Unit -->
+    <div class="section-label">KELOLA UNIT</div>
+    <div id="settings-units-list"></div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <button id="nav-units" class="active" onclick="switchMainTab('units')"><i class="bi bi-layers"></i>Unit</button>
+    <button id="nav-referensi" onclick="switchMainTab('referensi')"><i class="bi bi-book"></i>Referensi</button>
+    <button id="nav-settings" class="d-none" onclick="switchMainTab('settings')"><i class="bi bi-gear"></i>Settings</button>
+  </div>
+</div>
+
+<!-- ══════════ DETAIL ══════════ -->
+<div id="screen-detail" class="screen">
+  <!-- Header -->
+  <div class="topbar">
+    <button class="btn btn-sm p-0 mb-2" style="color:var(--muted)" onclick="backToMain()">
+      <i class="bi bi-chevron-left me-1"></i><span style="font-size:13px">Semua Unit</span>
+    </button>
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <div class="font-mono" style="font-size:10px;color:var(--muted)" id="d-trafo-id">—</div>
+        <h2 id="d-subtitle" class="text-white">—</h2>
+        <div style="font-size:12px;color:var(--muted)" id="d-pemilik">—</div>
+      </div>
+      <span id="d-status-badge" class="badge-status ms-2 mt-1">—</span>
+    </div>
+    <div class="d-flex align-items-center gap-2 mt-2">
+      <div class="prog-bar flex-grow-1"><div class="prog-fill" id="d-prog-fill" style="width:0%;background:var(--orange)"></div></div>
+      <span class="font-mono" style="font-size:11px;color:var(--muted);width:36px;text-align:right" id="d-prog-pct">0%</span>
+    </div>
+  </div>
+  <!-- Tab bar -->
+  <div class="tab-bar" id="detail-tabs">
+    <button class="tab-btn active" onclick="switchDetailTab('0501')" data-tab="0501">0501</button>
+    <button class="tab-btn" onclick="switchDetailTab('0502')" data-tab="0502">0502</button>
+    <button class="tab-btn" onclick="switchDetailTab('0503')" data-tab="0503">0503</button>
+    <button class="tab-btn" onclick="switchDetailTab('0504')" data-tab="0504">0504</button>
+    <button class="tab-btn" onclick="switchDetailTab('foto')" data-tab="foto">Foto</button>
+    <button class="tab-btn" onclick="switchDetailTab('mod')" data-tab="mod" id="tab-mod-btn">Mod.</button>
+  </div>
+  <!-- Tab contents -->
+  <div class="scroll-area px-3 py-3" id="detail-content"></div>
+</div>
+
+<!-- ══════════ ADD UNIT MODAL ══════════ -->
+<div class="modal fade" id="modal-add-unit" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:460px">
+    <div class="modal-content" style="background:var(--panel);border:1px solid var(--border);border-radius:16px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-700">Tambah Unit Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Identity -->
+        <div class="section-label">IDENTITAS TRAFO</div>
+        <div class="row g-2 mb-3">
+          <div class="col-6"><label class="form-label small text-muted mb-1">Trafo No.</label><input id="nu-trafo-no" class="form-control" placeholder="250034"></div>
+          <div class="col-6"><label class="form-label small text-muted mb-1">Serial No.</label><input id="nu-serial-no" class="form-control" placeholder="E1187"></div>
+          <div class="col-12"><label class="form-label small text-muted mb-1">Subtitle / Project</label><input id="nu-subtitle" class="form-control" placeholder="Meridian Energy Manapouri 3"></div>
+          <div class="col-6"><label class="form-label small text-muted mb-1">Pemilik</label><input id="nu-pemilik" class="form-control" placeholder="PT PLN..."></div>
+          <div class="col-6"><label class="form-label small text-muted mb-1">Lokasi</label><input id="nu-lokasi" class="form-control" placeholder="Jakarta"></div>
+          <div class="col-6"><label class="form-label small text-muted mb-1">Daya</label><input id="nu-daya" class="form-control" placeholder="630 kVA"></div>
+          <div class="col-6">
+            <label class="form-label small text-muted mb-1">Status Awal</label>
+            <select id="nu-status" class="form-select">
+              <option value="aktif">Aktif</option>
+              <option value="antrian">Antrian</option>
+            </select>
+          </div>
+        </div>
+        <hr class="divider">
+        <!-- Winding types -->
+        <div class="section-label">JENIS WINDING (urutan pemasangan)</div>
+        <div class="d-flex flex-wrap gap-2 mb-2" id="winding-picker">
+          <button class="btn btn-sm font-mono" style="border:1px solid var(--border);color:var(--muted);border-radius:8px" onclick="toggleWinding('TV')">TV</button>
+          <button class="btn btn-sm font-mono" style="border:1px solid var(--border);color:var(--muted);border-radius:8px" onclick="toggleWinding('IV')">IV</button>
+          <button class="btn btn-sm font-mono" style="border:1px solid var(--border);color:var(--muted);border-radius:8px" onclick="toggleWinding('LV')">LV</button>
+          <button class="btn btn-sm font-mono" style="border:1px solid var(--border);color:var(--muted);border-radius:8px" onclick="toggleWinding('FR')">FR</button>
+          <button class="btn btn-sm font-mono" style="border:1px solid var(--border);color:var(--muted);border-radius:8px" onclick="toggleWinding('HV')">HV</button>
+          <button class="btn btn-sm font-mono" style="border:1px solid var(--border);color:var(--muted);border-radius:8px" onclick="toggleWinding('CR')">CR</button>
+        </div>
+        <div id="winding-order-preview" class="font-mono mb-3" style="font-size:11px;color:var(--orange)"></div>
+        <hr class="divider">
+        <!-- Strips -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="section-label mb-0">STRIP ASSY (dari drawing)</div>
+          <button class="btn btn-sm" style="color:var(--orange);font-size:12px" onclick="addStripRow()"><i class="bi bi-plus-lg"></i> Tambah</button>
+        </div>
+        <div id="strip-rows"></div>
+        <hr class="divider">
+        <!-- Cylinders -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="section-label mb-0">CYLINDER ASSY (dari drawing)</div>
+          <button class="btn btn-sm" style="color:var(--orange);font-size:12px" onclick="addCylRow()"><i class="bi bi-plus-lg"></i> Tambah</button>
+        </div>
+        <div id="cyl-rows"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-ghost flex-grow-1" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-orange flex-grow-1" onclick="submitAddUnit()">Simpan Unit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Operator -->
+<div class="modal fade" id="modal-edit-user" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:340px">
+    <div class="modal-content" style="background:var(--panel);border:1px solid var(--border);border-radius:16px">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-700">Edit Operator</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="eu-old-name">
+        <div class="mb-2"><label class="input-nom">Nama Baru</label><input id="eu-name" class="form-control form-control-sm" placeholder="Nama operator"></div>
+        <div class="mb-3"><label class="input-nom">PIN Baru (kosongkan jika tidak diubah)</label><input id="eu-pin" class="form-control form-control-sm" type="number" maxlength="4" placeholder="****"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-ghost flex-grow-1" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-orange flex-grow-1" onclick="submitEditUser()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Unit -->
+<div class="modal fade" id="modal-edit-unit" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:460px">
+    <div class="modal-content" style="background:var(--panel);border:1px solid var(--border);border-radius:16px">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-700">Edit Unit</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="eu-unit-id">
+        <div class="section-label">INFO DASAR</div>
+        <div class="row g-2 mb-3">
+          <div class="col-12"><label class="input-nom">Subtitle / Project</label><input id="eu-subtitle" class="form-control form-control-sm"></div>
+          <div class="col-6"><label class="input-nom">Pemilik</label><input id="eu-pemilik" class="form-control form-control-sm"></div>
+          <div class="col-6"><label class="input-nom">Lokasi</label><input id="eu-lokasi" class="form-control form-control-sm"></div>
+          <div class="col-6"><label class="input-nom">Daya</label><input id="eu-daya" class="form-control form-control-sm"></div>
+          <div class="col-6">
+            <label class="input-nom">Status</label>
+            <select id="eu-status" class="form-select form-select-sm">
+              <option value="antrian">Antrian</option>
+              <option value="aktif">Aktif</option>
+              <option value="selesai">Selesai</option>
+            </select>
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="section-label">WINDING (BOM)</div>
+        <div class="tt-alert warn mb-2"><i class="bi bi-info-circle"></i><small>Tambah/hapus jenis winding. Strip & Cylinder tidak dapat diubah — catat sebagai Modifikasi jika ada perubahan.</small></div>
+        <div id="eu-winding-list" class="mb-2"></div>
+        <div class="d-flex gap-2 flex-wrap" id="eu-winding-add-btns">
+          <span class="input-nom w-100 mb-0">Tambah winding:</span>
+          ${['TV','IV','LV','FR','HV','CR'].map(w =>
+            `<button class="btn btn-sm font-mono" style="border:1px solid var(--border);color:var(--muted);border-radius:8px;font-size:11px" onclick="addWindingToUnit('${w}')">${w}</button>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-ghost flex-grow-1" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-orange flex-grow-1" onclick="submitEditUnit()">Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════════
+// PWA — Service Worker & Install
+// ══════════════════════════════════════════════════════════════
+let deferredInstallPrompt = null;
+let isOnline = navigator.onLine;
+let syncQueue = JSON.parse(localStorage.getItem('trafotrack-sync-queue') || '[]');
+
+function updateOnlineStatus() {
+  isOnline = navigator.onLine;
+  const banner = document.getElementById('offline-banner');
+  if (banner) banner.classList.toggle('d-none', isOnline);
+  if (isOnline && syncQueue.length) flushSyncQueue();
+}
+
+async function flushSyncQueue() {
+  if (!syncQueue.length || !isOnline) return;
+  const queue = [...syncQueue];
+  syncQueue = [];
+  localStorage.removeItem('trafotrack-sync-queue');
+  let synced = 0;
+  for (const item of queue) {
+    try {
+      await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(item) });
+      synced++;
+    } catch {
+      syncQueue.push(item);
+    }
+  }
+  if (syncQueue.length) localStorage.setItem('trafotrack-sync-queue', JSON.stringify(syncQueue));
+  if (synced) toast(`${synced} data tersinkronisasi ✓`);
+}
+
+// Override api() supaya queue saat offline
+const _apiFetch = async (action, data) => {
+  if (!GAS_URL) return mockApi(action, data);
+  const body = JSON.stringify({ action, data });
+  if (!isOnline) {
+    // Mutasi → queue, query → throw
+    const mutations = ['strips.upsert','cylinders.upsert','windings.upsert',
+      'final.upsert','workprep.upsert','modif.create','units.create',
+      'units.edit','units.addWinding','units.removeWinding',
+      'users.create','users.update','users.toggle'];
+    if (mutations.includes(action)) {
+      syncQueue.push({ action, data });
+      localStorage.setItem('trafotrack-sync-queue', JSON.stringify(syncQueue));
+      toast('Offline — data disimpan, akan sync saat online');
+      return { ok: true, queued: true };
+    }
+    throw new Error('Tidak ada koneksi internet');
+  }
+  const res = await fetch(GAS_URL, { method: 'POST', body });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error);
+  return json.data;
+};
+
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// Install prompt (Add to Home Screen)
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('btn-install-pwa')?.classList.remove('d-none');
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  document.getElementById('btn-install-pwa')?.classList.add('d-none');
+  toast('TrafoTrack berhasil diinstall ✓');
+});
+
+async function promptInstall() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') deferredInstallPrompt = null;
+}
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    console.log('SW registered:', reg.scope);
+    // Listen pesan dari SW (sync result)
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data.type === 'SYNC_DONE') {
+        toast(`Sync selesai: ${e.data.synced} data tersinkronisasi ✓`);
+      }
+    });
+  }).catch(err => console.warn('SW registration failed:', err));
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyEcIgOpDiOTzsgE3zmFQ-iA_V7B4xi9KoXZVbhc00wwTyyq5xIiAbNJA1UqsCRwQYg_g/exec';
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let state = {
+  user: null,        // { name, role, shift }
+  units: [],
+  currentUnit: null,
+  currentBom: null,
+  detailData: {},    // { strips, cylinders, windings, final, workprep, modif }
+  detailTab: '0501',
+  pinBuffer: '',
+  selectedWindings: [],
+  stripRows: [],
+  cylRows: [],
+};
+
+// ══════════════════════════════════════════════════════════════
+// API — menggunakan _apiFetch yang PWA-aware (offline queue)
+// ══════════════════════════════════════════════════════════════
+async function api(action, data = {}) {
+  return _apiFetch(action, data);
+}
+
+// ══════════════════════════════════════════════════════════════
+// MOCK API (demo tanpa GAS)
+// ══════════════════════════════════════════════════════════════
+const MOCK_USERS = [
+  {NAME:'Alan',PIN:'1234',ROLE:'operator',SHIFT:'Pagi',ACTIVE:true},
+  {NAME:'Arman',PIN:'1234',ROLE:'operator',SHIFT:'Pagi',ACTIVE:true},
+  {NAME:'Danni',PIN:'1234',ROLE:'operator',SHIFT:'Pagi',ACTIVE:true},
+  {NAME:'Imam',PIN:'1234',ROLE:'operator',SHIFT:'Pagi',ACTIVE:true},
+  {NAME:'Edi',PIN:'5678',ROLE:'operator',SHIFT:'Malam',ACTIVE:true},
+  {NAME:'Eko',PIN:'5678',ROLE:'operator',SHIFT:'Malam',ACTIVE:true},
+  {NAME:'Honda',PIN:'5678',ROLE:'operator',SHIFT:'Malam',ACTIVE:true},
+  {NAME:'Widodo',PIN:'5678',ROLE:'operator',SHIFT:'Malam',ACTIVE:true},
+  {NAME:'Foreman',PIN:'0000',ROLE:'admin',SHIFT:'Pagi',ACTIVE:true},
+];
+const MOCK_UNITS = [
+  {UNIT_ID:'U001',TRAFO_NO:'250034',SERIAL_NO:'E1187',SUBTITLE:'Meridian Energy Manapouri 3',PEMILIK:'Meridian Energy',LOKASI:'New Zealand',DAYA:'250034 kVA',STATUS:'aktif'},
+  {UNIT_ID:'U002',TRAFO_NO:'250041',SERIAL_NO:'E1201',SUBTITLE:'PLN UP3 Bekasi Unit 2',PEMILIK:'PLN UP3 Bekasi',LOKASI:'Bekasi, Jawa Barat',DAYA:'400 kVA',STATUS:'antrian'},
+];
+const MOCK_BOM = {
+  U001:{
+    strips: Array.from({length:8},(_,i)=>({UNIT_ID:'U001',SEQ:i+1,STRIP_ID:'S'+(i+1),NOM_THICK:3.0})),
+    cylinders: [
+      {UNIT_ID:'U001',SEQ:1,CYL_ID:'A1',NOM_DIAM:1012,NOM_HEIGHT:1836},
+      {UNIT_ID:'U001',SEQ:2,CYL_ID:'A2',NOM_DIAM:1030,NOM_HEIGHT:1836},
+      {UNIT_ID:'U001',SEQ:3,CYL_ID:'A3',NOM_DIAM:1050,NOM_HEIGHT:1836},
+      {UNIT_ID:'U001',SEQ:4,CYL_ID:'A4',NOM_DIAM:1065,NOM_HEIGHT:1836},
+      {UNIT_ID:'U001',SEQ:5,CYL_ID:'A5',NOM_DIAM:1025,NOM_HEIGHT:1836},
+      {UNIT_ID:'U001',SEQ:6,CYL_ID:'A6',NOM_DIAM:1360,NOM_HEIGHT:1830},
+      {UNIT_ID:'U001',SEQ:7,CYL_ID:'A7',NOM_DIAM:1387,NOM_HEIGHT:1021},
+      {UNIT_ID:'U001',SEQ:8,CYL_ID:'A8',NOM_DIAM:1584,NOM_HEIGHT:1021},
+    ],
+    windingTypes:['LV','HV','FR'],
+  },
+  U002:{
+    strips: Array.from({length:5},(_,i)=>({UNIT_ID:'U002',SEQ:i+1,STRIP_ID:'S'+(i+1),NOM_THICK:2.5})),
+    cylinders: [
+      {UNIT_ID:'U002',SEQ:1,CYL_ID:'A1',NOM_DIAM:980,NOM_HEIGHT:1600},
+      {UNIT_ID:'U002',SEQ:2,CYL_ID:'A2',NOM_DIAM:1010,NOM_HEIGHT:1600},
+      {UNIT_ID:'U002',SEQ:3,CYL_ID:'A3',NOM_DIAM:1040,NOM_HEIGHT:1600},
+      {UNIT_ID:'U002',SEQ:4,CYL_ID:'A4',NOM_DIAM:1200,NOM_HEIGHT:1600},
+    ],
+    windingTypes:['TV','LV','HV'],
+  },
+};
+const MOCK_STRIPS = {};
+const MOCK_CYLS = {};
+const MOCK_WINDS = {};
+const MOCK_FINAL = {};
+const MOCK_WORKPREP = {};
+const MOCK_MODIF = {};
+const MOCK_REF = [
+  {UNIT_ID:'H001',TRAFO_NO:'250034',SERIAL_NO:'E1050',SUBTITLE:'Meridian Energy Manapouri 2',PEMILIK:'Meridian Energy',STATUS:'selesai',CREATED_AT:'14/03/2026',bom:{strips:Array.from({length:8},(_,i)=>({STRIP_ID:'S'+(i+1),NOM_THICK:3.0})),cylinders:Array.from({length:8},(_,i)=>({CYL_ID:'A'+(i+1)})),windingTypes:['LV','HV','FR']},modifikasi:[{MOD_ID:'M1',DESKRIPSI:'Penambahan 1 Strip pada winding HV Phase C karena lowering longgar.',DISAHKAN_OLEH:'Production Foreman',CREATED_AT:'10/03/2026'}]},
+];
+
+function mockApi(action, data) {
+  switch(action) {
+    case 'auth.login': {
+      const u = MOCK_USERS.find(x => x.NAME===data.name && String(x.PIN)===String(data.pin));
+      if (!u) throw new Error('Nama atau PIN salah');
+      return {name:u.NAME,role:u.ROLE,shift:u.SHIFT};
+    }
+    case 'units.list':
+      return MOCK_UNITS.map(u => ({...u, bom: MOCK_BOM[u.UNIT_ID] || {strips:[],cylinders:[],windingTypes:[]}}));
+    case 'units.create': {
+      const id = 'U'+Date.now();
+      const nu = {UNIT_ID:id,TRAFO_NO:data.trafoNo,SERIAL_NO:data.serialNo,SUBTITLE:data.subtitle,PEMILIK:data.pemilik,LOKASI:data.lokasi,DAYA:data.daya,STATUS:data.status};
+      MOCK_UNITS.push(nu);
+      MOCK_BOM[id] = {strips:data.strips.map((s,i)=>({UNIT_ID:id,SEQ:i+1,STRIP_ID:'S'+(i+1),NOM_THICK:s.nomThick})),cylinders:data.cylinders.map((c,i)=>({UNIT_ID:id,SEQ:i+1,CYL_ID:'A'+(i+1),NOM_DIAM:c.nomDiam,NOM_HEIGHT:c.nomHeight})),windingTypes:data.windingTypes};
+      return {unitId:id};
+    }
+    case 'strips.list': return (MOCK_STRIPS[data.unitId] || []);
+    case 'strips.upsert': {
+      if (!MOCK_STRIPS[data.unitId]) MOCK_STRIPS[data.unitId] = [];
+      const key = data.stripId+'_'+data.phase;
+      const idx = MOCK_STRIPS[data.unitId].findIndex(r => r.ROW_KEY===key);
+      const row = {ROW_KEY:key,...data,UPDATED_AT:new Date().toLocaleDateString('id')};
+      if (idx>=0) MOCK_STRIPS[data.unitId][idx]=row; else MOCK_STRIPS[data.unitId].push(row);
+      return {ok:true};
+    }
+    case 'cylinders.list': return (MOCK_CYLS[data.unitId] || []);
+    case 'cylinders.upsert': {
+      if (!MOCK_CYLS[data.unitId]) MOCK_CYLS[data.unitId] = [];
+      const key = data.cylId+'_'+data.phase;
+      const idx = MOCK_CYLS[data.unitId].findIndex(r => r.ROW_KEY===key);
+      const row = {ROW_KEY:key,...data,UPDATED_AT:new Date().toLocaleDateString('id')};
+      if (idx>=0) MOCK_CYLS[data.unitId][idx]=row; else MOCK_CYLS[data.unitId].push(row);
+      return {ok:true};
+    }
+    case 'windings.list': return (MOCK_WINDS[data.unitId] || []);
+    case 'windings.upsert': {
+      if (!MOCK_WINDS[data.unitId]) MOCK_WINDS[data.unitId] = [];
+      const key = data.windingType+'_PH'+data.phaseNum;
+      const idx = MOCK_WINDS[data.unitId].findIndex(r => r.ROW_KEY===key);
+      const row = {ROW_KEY:key,...data};
+      if (idx>=0) MOCK_WINDS[data.unitId][idx]=row; else MOCK_WINDS[data.unitId].push(row);
+      return {ok:true};
+    }
+    case 'final.get': return MOCK_FINAL[data.unitId] || {};
+    case 'final.upsert': {
+      if (!MOCK_FINAL[data.unitId]) MOCK_FINAL[data.unitId] = {};
+      MOCK_FINAL[data.unitId][data.itemKey+'_'+data.phase] = data;
+      return {ok:true};
+    }
+    case 'workprep.get': return MOCK_WORKPREP[data.unitId] || {};
+    case 'workprep.upsert': {
+      if (!MOCK_WORKPREP[data.unitId]) MOCK_WORKPREP[data.unitId] = {};
+      MOCK_WORKPREP[data.unitId][data.itemKey+'_'+data.phase] = data.yesNo;
+      return {ok:true};
+    }
+    case 'modif.list': return (MOCK_MODIF[data.unitId] || []);
+    case 'modif.create': {
+      if (!MOCK_MODIF[data.unitId]) MOCK_MODIF[data.unitId] = [];
+      MOCK_MODIF[data.unitId].unshift({MOD_ID:'M'+Date.now(),...data,CREATED_AT:new Date().toLocaleDateString('id')});
+      return {ok:true};
+    }
+    case 'users.list': return MOCK_USERS.map(u => ({name:u.NAME,role:u.ROLE,shift:u.SHIFT,active:u.ACTIVE}));
+    case 'users.create': {
+      if (MOCK_USERS.find(u=>u.NAME===data.name)) throw new Error('Nama sudah terdaftar');
+      MOCK_USERS.push({NAME:data.name,PIN:data.pin,ROLE:data.role||'operator',SHIFT:data.shift||'Pagi',ACTIVE:true});
+      return {ok:true};
+    }
+    case 'users.update': {
+      const u = MOCK_USERS.find(x=>x.NAME===data.oldName);
+      if (!u) throw new Error('User tidak ditemukan');
+      if (data.newName && data.newName!==data.oldName) {
+        if (MOCK_USERS.find(x=>x.NAME===data.newName)) throw new Error('Nama sudah dipakai');
+        u.NAME = data.newName;
+      }
+      if (data.newPin) u.PIN = data.newPin;
+      return {ok:true};
+    }
+    case 'users.toggle': {
+      const u = MOCK_USERS.find(x=>x.NAME===data.name);
+      if (!u) throw new Error('User tidak ditemukan');
+      u.ACTIVE = !u.ACTIVE;
+      return {ok:true,active:u.ACTIVE};
+    }
+    case 'units.edit': {
+      const u = MOCK_UNITS.find(x=>x.UNIT_ID===data.unitId);
+      if (!u) throw new Error('Unit tidak ditemukan');
+      ['subtitle','pemilik','lokasi','daya','status'].forEach(k => {
+        if (data[k]!==undefined) u[k.toUpperCase()] = data[k];
+      });
+      return {ok:true};
+    }
+    case 'units.addWinding': {
+      const bom = MOCK_BOM[data.unitId];
+      if (!bom) throw new Error('BOM tidak ditemukan');
+      if (bom.windingTypes.includes(data.windingType)) throw new Error('Winding sudah ada');
+      bom.windingTypes.push(data.windingType);
+      return {ok:true};
+    }
+    case 'units.removeWinding': {
+      const bom = MOCK_BOM[data.unitId];
+      if (!bom) throw new Error('BOM tidak ditemukan');
+      bom.windingTypes = bom.windingTypes.filter(w=>w!==data.windingType);
+      return {ok:true};
+    }
+    default: return {};
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function toast(msg, ms=2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+function loading(container, msg='Memuat...') {
+  container.innerHTML = `<div class="spinner-wrap"><div class="spinner-border" style="color:var(--orange)"></div></div>`;
+}
+function progColor(v) { return v===100?'var(--teal)':v>0?'var(--orange)':'var(--panel2)'; }
+
+// ══════════════════════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════════════════════
+function initLoginNames() {
+  const sel = document.getElementById('login-name');
+  MOCK_USERS.forEach(u => {
+    const o = document.createElement('option');
+    o.value = u.NAME; o.textContent = u.NAME + (u.ROLE==='admin' ? ' (Admin)' : '');
+    sel.appendChild(o);
+  });
+}
+function updateLoginName() { state.pinBuffer = ''; updatePinDisplay(); }
+function pinKey(n) {
+  if (state.pinBuffer.length >= 4) return;
+  state.pinBuffer += n;
+  updatePinDisplay();
+  if (state.pinBuffer.length === 4) document.getElementById('login-btn').disabled = !document.getElementById('login-name').value;
+}
+function pinBack() { state.pinBuffer = state.pinBuffer.slice(0,-1); updatePinDisplay(); document.getElementById('login-btn').disabled = true; }
+function pinClear() { state.pinBuffer = ''; updatePinDisplay(); document.getElementById('login-btn').disabled = true; }
+function updatePinDisplay() {
+  for(let i=0;i<4;i++) {
+    const d = document.getElementById('d'+i);
+    d.classList.toggle('filled', i < state.pinBuffer.length);
+  }
+}
+async function doLogin() {
+  const name = document.getElementById('login-name').value;
+  const pin = state.pinBuffer;
+  document.getElementById('login-error').textContent = '';
+  try {
+    const user = await api('auth.login', {name, pin});
+    state.user = user;
+    document.getElementById('user-name-display').textContent = user.name;
+    document.getElementById('user-shift-display').textContent = 'Shift ' + user.shift;
+    if (user.role === 'admin') {
+      document.getElementById('btn-add-unit').classList.remove('d-none');
+      document.getElementById('nav-settings').classList.remove('d-none');
+    }
+    await loadUnits();
+    showScreen('screen-main');
+  } catch(e) {
+    document.getElementById('login-error').textContent = e.message;
+    pinClear();
+  }
+}
+function doLogout() {
+  state.user = null; state.units = [];
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('btn-add-unit').classList.add('d-none');
+  document.getElementById('nav-settings').classList.add('d-none');
+  switchMainTab('units');
+  pinClear();
+  showScreen('screen-login');
+}
+
+// ══════════════════════════════════════════════════════════════
+// MAIN — UNIT LIST
+// ══════════════════════════════════════════════════════════════
+async function loadUnits() {
+  const container = document.getElementById('unit-list-container');
+  loading(container);
+  state.units = await api('units.list');
+  renderUnitList();
+}
+
+function calcProgress(unit, bom) {
+  // simple heuristic: count saved strips+cylinders from loaded detailData
+  return 0; // actual calc happens after detail loaded
+}
+
+function renderUnitList() {
+  const container = document.getElementById('unit-list-container');
+  if (!state.units.length) { container.innerHTML = '<p class="text-muted text-center py-5 small">Belum ada unit. Tambah unit baru.</p>'; return; }
+  container.innerHTML = state.units.map(u => {
+    const bom = u.bom || {strips:[],cylinders:[],windingTypes:[]};
+    const chips = bom.windingTypes.map(w => `<span class="badge font-mono me-1" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);font-size:10px">${w}</span>`).join('');
+    const statusClass = {aktif:'badge-aktif',antrian:'badge-antrian',selesai:'badge-selesai'}[u.STATUS] || 'badge-antrian';
+    return `
+    <button class="card-unit mb-3 text-start border-0" onclick="openUnit('${u.UNIT_ID}')">
+      <div class="d-flex justify-content-between align-items-start mb-1">
+        <div class="min-w-0 pe-2">
+          <div class="font-mono d-flex align-items-center gap-2" style="font-size:10px;color:var(--muted)">
+            Trafo No. ${u.TRAFO_NO} · SN: ${u.SERIAL_NO}
+            <span class="badge-status ${statusClass}">${u.STATUS.toUpperCase()}</span>
+          </div>
+          <div class="fw-600" style="font-size:14px">${u.SUBTITLE}</div>
+          <div style="font-size:12px;color:var(--muted)">${u.PEMILIK} · ${u.LOKASI}</div>
+        </div>
+      </div>
+      <div class="mb-2">${chips}
+        <span class="ms-1" style="font-size:11px;color:var(--muted)">${bom.strips.length} strip · ${bom.cylinders.length} cylinder</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <div class="prog-bar flex-grow-1"><div class="prog-fill" style="width:0%;background:var(--orange)"></div></div>
+        <span class="font-mono" style="font-size:11px;color:var(--muted);width:32px;text-align:right">—</span>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function switchMainTab(tab) {
+  ['units','referensi','settings'].forEach(t => {
+    document.getElementById('view-'+t)?.classList.toggle('d-none', t!==tab);
+    document.getElementById('nav-'+t)?.classList.toggle('active', t===tab);
+  });
+  document.getElementById('main-title').textContent =
+    tab==='units' ? 'Unit Trafo' : tab==='referensi' ? 'Referensi' : 'Pengaturan';
+  if (tab==='settings') loadSettings();
+}
+
+// ── Settings: load ─────────────────────────────────────────────
+async function loadSettings() {
+  await Promise.all([loadSettingsUsers(), loadSettingsUnits()]);
+}
+
+async function loadSettingsUsers() {
+  const users = await api('users.list');
+  const container = document.getElementById('settings-users-list');
+  if (!users.length) { container.innerHTML = '<p class="text-muted small">Belum ada operator.</p>'; return; }
+  container.innerHTML = users.map(u => `
+    <div class="row-item mb-2 p-0" style="${!u.active?'opacity:.5':''}">
+      <div class="d-flex align-items-center gap-2 px-3 py-2">
+        <div class="flex-grow-1">
+          <div class="fw-600" style="font-size:13px">${u.name}
+            <span class="badge-status ms-1 ${u.role==='admin'?'badge-aktif':'badge-antrian'}" style="font-size:9px">${u.role.toUpperCase()}</span>
+            ${!u.active ? '<span class="badge-status" style="background:#333;color:#999;font-size:9px">NONAKTIF</span>' : ''}
+          </div>
+          <div class="font-mono" style="font-size:10px;color:var(--muted)">Shift ${u.shift} · PIN: ****</div>
+        </div>
+        <button class="btn btn-sm" style="color:var(--orange)" onclick="openEditUser('${u.name}')"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm" style="color:var(--muted)" onclick="toggleUser('${u.name}',${u.active})">
+          <i class="bi bi-${u.active?'toggle-on text-teal':'toggle-off'}" style="font-size:18px"></i>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+async function loadSettingsUnits() {
+  const container = document.getElementById('settings-units-list');
+  if (!state.units.length) { container.innerHTML = '<p class="text-muted small">Belum ada unit.</p>'; return; }
+  container.innerHTML = state.units.map(u => {
+    const statusClass = {aktif:'badge-aktif',antrian:'badge-antrian',selesai:'badge-selesai'}[u.STATUS]||'badge-antrian';
+    const bom = u.bom || {windingTypes:[]};
+    return `<div class="row-item mb-2 p-0">
+      <div class="d-flex align-items-center gap-2 px-3 py-2">
+        <div class="flex-grow-1 min-w-0">
+          <div class="d-flex align-items-center gap-2">
+            <span class="font-mono" style="font-size:10px;color:var(--muted)">${u.TRAFO_NO} · ${u.SERIAL_NO}</span>
+            <span class="badge-status ${statusClass}">${u.STATUS.toUpperCase()}</span>
+          </div>
+          <div class="fw-600 text-truncate" style="font-size:13px">${u.SUBTITLE}</div>
+          <div style="font-size:11px;color:var(--muted)">
+            ${bom.windingTypes.map(w=>`<span class="font-mono me-1" style="color:var(--orange)">${w}</span>`).join('')}
+          </div>
+        </div>
+        <button class="btn btn-sm" style="color:var(--orange)" onclick="openEditUnit('${u.UNIT_ID}')">
+          <i class="bi bi-pencil-square"></i>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Settings: Users ────────────────────────────────────────────
+function showAddUserForm() { document.getElementById('add-user-form').classList.remove('d-none'); }
+function hideAddUserForm() { document.getElementById('add-user-form').classList.add('d-none'); }
+
+async function submitAddUser() {
+  const name = document.getElementById('nu-name').value.trim();
+  const pin  = document.getElementById('nu-pin').value.trim();
+  const role = document.getElementById('nu-role').value;
+  const shift= document.getElementById('nu-shift-default').value;
+  if (!name || pin.length !== 4) { toast('Nama dan PIN 4 digit wajib diisi'); return; }
+  try {
+    await api('users.create', {name, pin, role, shift});
+    toast(`Operator ${name} ditambahkan ✓`);
+    document.getElementById('nu-name').value = '';
+    document.getElementById('nu-pin').value = '';
+    hideAddUserForm();
+    // Update login dropdown
+    const sel = document.getElementById('login-name');
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name + (role==='admin'?' (Admin)':'');
+    sel.appendChild(opt);
+    // Update mock untuk shift picker
+    if (!SHIFTS[shift]) SHIFTS[shift] = [];
+    if (!SHIFTS[shift].includes(name)) SHIFTS[shift].push(name);
+    await loadSettingsUsers();
+  } catch(e) { toast('Error: '+e.message); }
+}
+
+function openEditUser(name) {
+  document.getElementById('eu-old-name').value = name;
+  document.getElementById('eu-name').value = name;
+  document.getElementById('eu-pin').value = '';
+  new bootstrap.Modal(document.getElementById('modal-edit-user')).show();
+}
+
+async function submitEditUser() {
+  const oldName = document.getElementById('eu-old-name').value;
+  const newName = document.getElementById('eu-name').value.trim();
+  const newPin  = document.getElementById('eu-pin').value.trim();
+  if (!newName) { toast('Nama tidak boleh kosong'); return; }
+  if (newPin && newPin.length !== 4) { toast('PIN harus 4 digit'); return; }
+  try {
+    await api('users.update', {oldName, newName: newName!==oldName?newName:undefined, newPin: newPin||undefined});
+    toast('Data operator diperbarui ✓');
+    bootstrap.Modal.getInstance(document.getElementById('modal-edit-user'))?.hide();
+    // Update login dropdown
+    const sel = document.getElementById('login-name');
+    Array.from(sel.options).forEach(o => { if (o.value===oldName) o.value = o.textContent = newName; });
+    await loadSettingsUsers();
+  } catch(e) { toast('Error: '+e.message); }
+}
+
+async function toggleUser(name, currentActive) {
+  try {
+    await api('users.toggle', {name});
+    toast(`${name} ${currentActive?'dinonaktifkan':'diaktifkan'} ✓`);
+    await loadSettingsUsers();
+  } catch(e) { toast('Error: '+e.message); }
+}
+
+// ── Settings: Unit Edit ────────────────────────────────────────
+let euCurrentWindings = [];
+
+function openEditUnit(unitId) {
+  const u = state.units.find(x => x.UNIT_ID === unitId);
+  if (!u) return;
+  euCurrentWindings = [...(u.bom?.windingTypes || [])];
+  document.getElementById('eu-unit-id').value = unitId;
+  document.getElementById('eu-subtitle').value = u.SUBTITLE || '';
+  document.getElementById('eu-pemilik').value  = u.PEMILIK  || '';
+  document.getElementById('eu-lokasi').value   = u.LOKASI   || '';
+  document.getElementById('eu-daya').value     = u.DAYA     || '';
+  document.getElementById('eu-status').value   = u.STATUS   || 'antrian';
+  renderEuWindingList();
+  new bootstrap.Modal(document.getElementById('modal-edit-unit')).show();
+}
+
+function renderEuWindingList() {
+  document.getElementById('eu-winding-list').innerHTML = euCurrentWindings.length
+    ? euCurrentWindings.map((w,i) => `
+        <div class="d-flex align-items-center gap-2 mb-1 px-2 py-1" style="background:var(--panel2);border-radius:8px">
+          <span class="font-mono fw-700" style="font-size:12px;color:var(--orange);width:32px">${w}</span>
+          <span style="font-size:11px;color:var(--muted)">${WIND_LABELS[w]||''}</span>
+          <button class="btn btn-sm ms-auto p-0" style="color:var(--muted)" onclick="removeWindingFromUnit('${w}')"><i class="bi bi-x-lg"></i></button>
+        </div>`).join('')
+    : '<p class="text-muted small">Belum ada winding.</p>';
+}
+
+function addWindingToUnit(w) {
+  if (euCurrentWindings.includes(w)) { toast(`${w} sudah ada`); return; }
+  euCurrentWindings.push(w);
+  renderEuWindingList();
+}
+
+function removeWindingFromUnit(w) {
+  euCurrentWindings = euCurrentWindings.filter(x => x !== w);
+  renderEuWindingList();
+}
+
+async function submitEditUnit() {
+  const unitId   = document.getElementById('eu-unit-id').value;
+  const subtitle = document.getElementById('eu-subtitle').value.trim();
+  const pemilik  = document.getElementById('eu-pemilik').value.trim();
+  const lokasi   = document.getElementById('eu-lokasi').value.trim();
+  const daya     = document.getElementById('eu-daya').value.trim();
+  const status   = document.getElementById('eu-status').value;
+  if (!subtitle) { toast('Subtitle wajib diisi'); return; }
+
+  // Edit info dasar
+  await api('units.edit', {unitId, subtitle, pemilik, lokasi, daya, status});
+
+  // Sinkronkan winding — bandingkan euCurrentWindings vs BOM lama
+  const u = state.units.find(x => x.UNIT_ID === unitId);
+  const oldWindings = u.bom?.windingTypes || [];
+  const toAdd    = euCurrentWindings.filter(w => !oldWindings.includes(w));
+  const toRemove = oldWindings.filter(w => !euCurrentWindings.includes(w));
+  for (const w of toAdd)    await api('units.addWinding',    {unitId, windingType: w});
+  for (const w of toRemove) await api('units.removeWinding', {unitId, windingType: w});
+
+  toast('Unit berhasil diperbarui ✓');
+  bootstrap.Modal.getInstance(document.getElementById('modal-edit-unit'))?.hide();
+  await loadUnits();
+  await loadSettingsUnits();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DETAIL
+// ══════════════════════════════════════════════════════════════
+async function openUnit(unitId) {
+  state.currentUnit = state.units.find(u => u.UNIT_ID === unitId);
+  state.currentBom = state.currentUnit.bom;
+  // Update header
+  document.getElementById('d-trafo-id').textContent = `Trafo No. ${state.currentUnit.TRAFO_NO} · SN: ${state.currentUnit.SERIAL_NO}`;
+  document.getElementById('d-subtitle').textContent = state.currentUnit.SUBTITLE;
+  document.getElementById('d-pemilik').textContent = `${state.currentUnit.PEMILIK} · ${state.currentUnit.LOKASI}`;
+  const statusClass = {aktif:'badge-aktif',antrian:'badge-antrian',selesai:'badge-selesai'}[state.currentUnit.STATUS] || 'badge-antrian';
+  document.getElementById('d-status-badge').className = `badge-status ms-2 mt-1 ${statusClass}`;
+  document.getElementById('d-status-badge').textContent = state.currentUnit.STATUS.toUpperCase();
+  showScreen('screen-detail');
+  await loadDetailData(unitId);
+  switchDetailTab('0501');
+}
+
+async function loadDetailData(unitId) {
+  const [strips, cylinders, windings, finalData, workprep, modif] = await Promise.all([
+    api('strips.list', {unitId}),
+    api('cylinders.list', {unitId}),
+    api('windings.list', {unitId}),
+    api('final.get', {unitId}),
+    api('workprep.get', {unitId}),
+    api('modif.list', {unitId}),
+  ]);
+  state.detailData = { strips, cylinders, windings, finalData, workprep, modif };
+  updateProgress();
+  updateModBadge();
+}
+
+function updateProgress() {
+  const bom = state.currentBom;
+  const dd = state.detailData;
+  let done = 0, total = 0;
+  total += bom.strips.length * 3;
+  ['A','B','C'].forEach(ph => done += dd.strips.filter(s => s.PHASE===ph).length);
+  total += bom.cylinders.length * 3;
+  ['A','B','C'].forEach(ph => done += dd.cylinders.filter(c => c.PHASE===ph).length);
+  total += bom.windingTypes.length * 3;
+  done += dd.windings.length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('d-prog-fill').style.width = pct+'%';
+  document.getElementById('d-prog-fill').style.background = progColor(pct);
+  document.getElementById('d-prog-pct').textContent = pct+'%';
+}
+
+function updateModBadge() {
+  const btn = document.getElementById('tab-mod-btn');
+  const cnt = state.detailData.modif.length;
+  btn.innerHTML = 'Mod.' + (cnt > 0 ? `<span class="badge-mod ms-1">${cnt}</span>` : '');
+}
+
+function switchDetailTab(tab) {
+  state.detailTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
+  renderDetailTab(tab);
+}
+
+function backToMain() { showScreen('screen-main'); }
+
+function renderDetailTab(tab) {
+  const el = document.getElementById('detail-content');
+  el.innerHTML = '';
+  if (tab==='0501') render0501(el);
+  else if (tab==='0502') render0502(el);
+  else if (tab==='0503') render0503(el);
+  else if (tab==='0504') render0504(el);
+  else if (tab==='foto') renderFoto(el);
+  else if (tab==='mod') renderMod(el);
+}
+
+// ── Form Badge helper ─────────────────────────────────────────
+function formHeader(formNo, title, sub='') {
+  return `<div class="row-item mb-3 p-3">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="form-badge">FP-PRD-${formNo}</span>
+    </div>
+    <div class="fw-600" style="font-size:13px">${title}</div>
+    ${sub ? `<div style="font-size:11px;color:var(--muted)">${sub}</div>` : ''}
+  </div>`;
+}
+
+// ── 0501: Strips ──────────────────────────────────────────────
+function render0501(el) {
+  const bom = state.currentBom;
+  const dd = state.detailData;
+  el.innerHTML = formHeader('0501','Core Coil Assembly — Bottom Structure, Cylinder & Strip');
+
+  // Strips
+  let html = `<div class="section-label">INSTALL STRIPS ASSEMBLY (${bom.strips.length} pcs)</div>`;
+  bom.strips.forEach(s => {
+    const saved = {};
+    ['A','B','C'].forEach(ph => {
+      const r = dd.strips.find(x => x.STRIP_ID===s.STRIP_ID && x.PHASE===ph);
+      if (r) saved[ph] = r;
+    });
+    const done = saved.A && saved.B && saved.C;
+    html += `<div class="row-item ${done?'done':''}" id="strip-${s.STRIP_ID}">
+      <div class="row-header" onclick="toggleRow('strip-${s.STRIP_ID}')">
+        <i class="bi ${done?'bi-check-circle-fill text-teal':'bi-circle'}" style="color:${done?'var(--teal)':'var(--muted)'}"></i>
+        <span class="font-mono fw-700" style="font-size:12px;width:40px">${s.STRIP_ID}</span>
+        <span style="font-size:11px;color:var(--muted)">Nom: ${s.NOM_THICK} mm</span>
+        ${done ? `<span class="ms-auto font-mono" style="font-size:10px;color:var(--teal)">A:${saved.A.ACTUAL_THICK} B:${saved.B.ACTUAL_THICK} C:${saved.C.ACTUAL_THICK}</span>` : ''}
+        <i class="bi bi-chevron-down ms-auto" style="color:var(--muted);font-size:13px"></i>
+      </div>
+      <div class="row-body d-none">
+        <div class="row g-2 mb-2">
+          ${['A','B','C'].map(ph => `
+          <div class="col-4">
+            <div class="input-nom">Phase ${ph} Actual (mm)</div>
+            <input type="number" step="0.01" inputmode="decimal" class="form-control form-control-sm text-center"
+              id="strip-${s.STRIP_ID}-ph${ph}"
+              value="${saved[ph] ? saved[ph].ACTUAL_THICK : ''}"
+              placeholder="${s.NOM_THICK}">
+            ${saved[ph] ? `<div class="text-center mt-1" style="font-size:10px;color:${Math.abs(saved[ph].ACTUAL_THICK-s.NOM_THICK)>0.5?'var(--yellow)':'var(--teal)'}">${(saved[ph].ACTUAL_THICK-s.NOM_THICK)>=0?'+':''}${(saved[ph].ACTUAL_THICK-s.NOM_THICK).toFixed(2)}</div>` : ''}
+          </div>`).join('')}
+        </div>
+        ${shiftPickerHtml('strip-'+s.STRIP_ID, saved.A)}
+        <button class="btn btn-orange w-100 mt-2" style="font-size:12px;padding:8px" onclick="saveStrip('${s.STRIP_ID}','${s.NOM_THICK}')">
+          <i class="bi bi-floppy me-1"></i>Simpan ${s.STRIP_ID}
+        </button>
+        ${saved.A ? `<div class="mt-2 font-mono" style="font-size:10px;color:var(--muted)">Update: ${saved.A.UPDATED_AT} · ${saved.A.WORKER1||''}${saved.A.WORKER2?','+saved.A.WORKER2:''}</div>` : ''}
+      </div>
+    </div>`;
+  });
+  el.innerHTML += html;
+
+  // Cylinders
+  let chtml = `<div class="section-label mt-3">MOUNTING OF CYLINDER (${bom.cylinders.length} pcs)</div>`;
+  bom.cylinders.forEach(c => {
+    const saved = {};
+    ['A','B','C'].forEach(ph => {
+      const r = dd.cylinders.find(x => x.CYL_ID===c.CYL_ID && x.PHASE===ph);
+      if (r) saved[ph] = r;
+    });
+    const done = saved.A && saved.B && saved.C;
+    chtml += `<div class="row-item ${done?'done':''}" id="cyl-${c.CYL_ID}">
+      <div class="row-header" onclick="toggleRow('cyl-${c.CYL_ID}')">
+        <i class="bi ${done?'bi-check-circle-fill':'bi-circle'}" style="color:${done?'var(--teal)':'var(--muted)'}"></i>
+        <span class="font-mono fw-700" style="font-size:12px;width:40px">${c.CYL_ID}</span>
+        <span style="font-size:11px;color:var(--muted)">Ø${c.NOM_DIAM} · H${c.NOM_HEIGHT} mm</span>
+        <i class="bi bi-chevron-down ms-auto" style="color:var(--muted);font-size:13px"></i>
+      </div>
+      <div class="row-body d-none">
+        ${['A','B','C'].map(ph => `
+        <div class="mb-2">
+          <div class="input-nom fw-600" style="color:var(--orange)">Phase ${ph}</div>
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="input-nom">Diam. Actual (mm) <span style="color:var(--muted)">[nom:${c.NOM_DIAM}]</span></div>
+              <input type="number" step="1" inputmode="decimal" class="form-control form-control-sm text-center"
+                id="cyl-${c.CYL_ID}-ph${ph}-diam" value="${saved[ph]?saved[ph].ACTUAL_DIAM:''}" placeholder="${c.NOM_DIAM}">
+            </div>
+            <div class="col-6">
+              <div class="input-nom">Height Actual (mm) <span style="color:var(--muted)">[nom:${c.NOM_HEIGHT}]</span></div>
+              <input type="number" step="1" inputmode="decimal" class="form-control form-control-sm text-center"
+                id="cyl-${c.CYL_ID}-ph${ph}-height" value="${saved[ph]?saved[ph].ACTUAL_HEIGHT:''}" placeholder="${c.NOM_HEIGHT}">
+            </div>
+          </div>
+        </div>`).join('')}
+        <div class="mb-2">
+          <div class="input-nom">Date</div>
+          <input type="text" class="form-control form-control-sm" id="cyl-${c.CYL_ID}-date" placeholder="DD/MM/YYYY" value="${saved.A?saved.A.DATE:''}">
+        </div>
+        ${shiftPickerHtml('cyl-'+c.CYL_ID, saved.A)}
+        <button class="btn btn-orange w-100 mt-2" style="font-size:12px;padding:8px" onclick="saveCylinder('${c.CYL_ID}')">
+          <i class="bi bi-floppy me-1"></i>Simpan ${c.CYL_ID}
+        </button>
+      </div>
+    </div>`;
+  });
+  el.innerHTML += chtml;
+}
+
+// ── 0502: Windings ────────────────────────────────────────────
+const WIND_LABELS = {TV:'Tertier Voltage',IV:'Inter Voltage',LV:'Low Voltage',FR:'Filter/Regulating',HV:'High Voltage',CR:'Coarse Regulating'};
+
+function render0502(el) {
+  el.innerHTML = formHeader('0502','Core Coil Assembly — Mounting Winding',
+    'Reference: Winding placement must conform to drawing lead placement &amp; clating system HV+LV');
+  const bom = state.currentBom;
+  const dd = state.detailData;
+  let html = '';
+  bom.windingTypes.forEach(wt => {
+    const phases = [1,2,3].map(ph => dd.windings.find(w => w.WINDING_TYPE===wt && String(w.PHASE_NUM)===String(ph)) || null);
+    const allDone = phases.every(p => p && (p.NORMAL==='Y'||p.TIGHT==='Y'));
+    html += `<div class="row-item ${allDone?'done':''}" id="wind-${wt}">
+      <div class="row-header" onclick="toggleRow('wind-${wt}')">
+        <i class="bi ${allDone?'bi-check-circle-fill':'bi-circle'}" style="color:${allDone?'var(--teal)':'var(--muted)'}"></i>
+        <span class="font-mono fw-700" style="font-size:12px;width:36px">${wt}</span>
+        <span style="font-size:11px;color:var(--muted)">${WIND_LABELS[wt]||''}</span>
+        <i class="bi bi-chevron-down ms-auto" style="color:var(--muted);font-size:13px"></i>
+      </div>
+      <div class="row-body d-none">
+        <div class="mb-2">
+          <div class="input-nom">Date</div>
+          <input type="text" class="form-control form-control-sm" id="wind-${wt}-date" placeholder="DD/MM" value="${phases[0]?phases[0].DATE:''}">
+        </div>
+        ${[1,2,3].map(ph => {
+          const p = phases[ph-1];
+          return `
+          <div class="mb-3 p-2" style="background:var(--panel);border-radius:8px;border:1px solid var(--border)">
+            <div class="font-mono fw-700 mb-2" style="font-size:11px;color:var(--orange)">PHASE ${ph}</div>
+            <div class="d-flex gap-2 mb-2">
+              <button id="w-${wt}-${ph}-normal" class="nt-btn ${p&&p.NORMAL==='Y'?'normal-active':''}" onclick="toggleNT('${wt}',${ph},'N')">Normal ✓</button>
+              <button id="w-${wt}-${ph}-tight" class="nt-btn ${p&&p.TIGHT==='Y'?'tight-active':''}" onclick="toggleNT('${wt}',${ph},'T')">Tight !</button>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <div class="input-nom">Reduce(-)/Add(+) Strips (mm)</div>
+                <input class="form-control form-control-sm" id="w-${wt}-${ph}-ra" placeholder="-0.5 / +1" value="${p?p.REDUCE_ADD:''}">
+              </div>
+              <div class="col-6">
+                <div class="input-nom">Alignment / Verdelingen</div>
+                <input class="form-control form-control-sm" id="w-${wt}-${ph}-al" placeholder="OK" value="${p?p.ALIGNMENT:''}">
+              </div>
+            </div>
+            <div class="input-nom mb-1">Executor</div>
+            <div class="d-flex flex-wrap gap-1" id="w-exec-${wt}-${ph}">
+              ${allWorkers().map(nama => {
+                const sel = p && [p.WORKER1,p.WORKER2,p.WORKER3,p.WORKER4].includes(nama);
+                return `<button class="worker-btn ${sel?'active':''}" onclick="toggleWorkerW('${wt}',${ph},'${nama}')">${nama}</button>`;
+              }).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <input type="checkbox" id="w-${wt}-qc" class="form-check-input" ${phases[0]&&phases[0].CHECKED_BY_QC==='Y'?'checked':''}>
+          <label for="w-${wt}-qc" class="small">Checked by QC</label>
+        </div>
+        <button class="btn btn-orange w-100" style="font-size:12px;padding:8px" onclick="saveWinding('${wt}')">
+          <i class="bi bi-floppy me-1"></i>Simpan Winding ${wt}
+        </button>
+      </div>
+    </div>`;
+  });
+  el.innerHTML += html;
+}
+
+// ── 0503: Final ───────────────────────────────────────────────
+function render0503(el) {
+  el.innerHTML = formHeader('0503','Coil Assembly — Final Core and Coil Assembly');
+  const fd = state.detailData.finalData;
+  const checkItems = [
+    {key:'topBlock',label:'Placement of TOP block spacers'},
+    {key:'inLine',label:'Right and in line with Section/Verdelingen'},
+    {key:'leadTV',label:'Insulating outcoming lead TV — Thickness (mm/side)'},
+    {key:'leadLV',label:'Insulating outcoming lead LV + initial ring — Thickness (mm/side)'},
+    {key:'ctcWire',label:'CTC wire: Nomex overlap 50%, creep paper overlap 50%'},
+    {key:'clearance',label:'Clearance/gap below layer 5 or 7 (yoke process)'},
+    {key:'noDamage',label:'No damage at core during yoking'},
+    {key:'spanbolt',label:'Spanbolt — at least 3 fine threads left'},
+  ];
+  let html = `<div class="section-label">CHECK YES / NO</div>
+  <div class="chk-table mb-3">
+    <div class="chk-row header" style="grid-template-columns:1fr 72px 72px 72px">
+      <div class="chk-cell" style="color:var(--muted);font-size:10px;font-family:monospace">ACTIVITY</div>
+      <div class="chk-cell text-center" style="color:var(--muted);font-size:10px;font-family:monospace">Ph 1</div>
+      <div class="chk-cell text-center" style="color:var(--muted);font-size:10px;font-family:monospace">Ph 2</div>
+      <div class="chk-cell text-center" style="color:var(--muted);font-size:10px;font-family:monospace">Ph 3</div>
+    </div>`;
+  checkItems.forEach(item => {
+    html += `<div class="chk-row" style="grid-template-columns:1fr 72px 72px 72px">
+      <div class="chk-cell" style="font-size:11px">${item.label}</div>
+      ${[1,2,3].map(ph => {
+        const k = item.key+'_'+ph;
+        const val = fd[k] ? fd[k].YES_NO : '';
+        return `<div class="chk-cell d-flex justify-content-center align-items-center">
+          <div class="yn-group">
+            <button class="yn-btn ${val==='Y'?'y-active':''}" onclick="toggleFinal('${item.key}',${ph},'Y')">Y</button>
+            <button class="yn-btn ${val==='N'?'n-active':''}" onclick="toggleFinal('${item.key}',${ph},'N')">N</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  html += `</div>`;
+
+  const measureItems = [
+    {key:'pressPlate',label:'Measurement of top press plate'},
+    {key:'pressBlock',label:'Measurement of top press block'},
+    {key:'platePlusBlock',label:'Press plate + press block (tol ±2mm)'},
+    {key:'winding50',label:'Winding clearance — Nominal 50% [ton] at drawing'},
+  ];
+  html += `<div class="section-label">MEASUREMENT — NOMINAL vs ACTUAL</div>
+  <div class="chk-table mb-3">
+    <div class="chk-row header" style="grid-template-columns:1fr repeat(3,88px)">
+      <div class="chk-cell" style="color:var(--muted);font-size:10px;font-family:monospace">ACTIVITY</div>
+      ${[1,2,3].map(ph=>`<div class="chk-cell text-center" style="color:var(--muted);font-size:10px;font-family:monospace">Phase ${ph}</div>`).join('')}
+    </div>`;
+  measureItems.forEach(item => {
+    html += `<div class="chk-row" style="grid-template-columns:1fr repeat(3,88px)">
+      <div class="chk-cell" style="font-size:11px">${item.label}</div>
+      ${[1,2,3].map(ph => {
+        const nom = fd[item.key+'_'+ph] ? fd[item.key+'_'+ph].NOMINAL : '';
+        const act = fd[item.key+'_'+ph] ? fd[item.key+'_'+ph].ACTUAL : '';
+        return `<div class="chk-cell">
+          <div class="input-nom">Nom.</div>
+          <input type="number" step="0.1" inputmode="decimal" class="form-control form-control-sm text-center mb-1"
+            id="f-${item.key}-${ph}-nom" value="${nom}" placeholder="—"
+            onchange="saveFinalMeasure('${item.key}',${ph})">
+          <div class="input-nom">Act.</div>
+          <input type="number" step="0.1" inputmode="decimal" class="form-control form-control-sm text-center"
+            id="f-${item.key}-${ph}-act" value="${act}" placeholder="—"
+            onchange="saveFinalMeasure('${item.key}',${ph})">
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  html += `</div>`;
+  el.innerHTML += html;
+}
+
+// ── 0504: Work Prep ───────────────────────────────────────────
+function render0504(el) {
+  el.innerHTML = formHeader('0504','Core Coil Assembly — Work Preparation & Inspection');
+  const wp = state.detailData.workprep;
+  const items = [
+    {key:'firstCreep',label:'First layer creep paper overlap 50%'},
+    {key:'secondCreep',label:'Second layer creep paper overlap 50%'},
+    {key:'topSide',label:'Top side layers positioned at top side'},
+    {key:'slabL1',label:'Slab layer 1 — No.{0}+1 · Rad No. 8–10'},
+    {key:'slabL2',label:'Slab layer 2 — install after clackband 1 layer'},
+    {key:'clackband',label:'Install clackband or corrugated 1 layer'},
+    {key:'corrugated',label:'Install corrugated or clackband on right place'},
+  ];
+  let html = `<div class="section-label">CHECK YES / NO PER PHASE</div>
+  <div class="chk-table">
+    <div class="chk-row header" style="grid-template-columns:1fr 72px 72px 72px">
+      <div class="chk-cell" style="color:var(--muted);font-size:10px;font-family:monospace">ACTIVITY</div>
+      <div class="chk-cell text-center" style="color:var(--muted);font-size:10px;font-family:monospace">Ph 1</div>
+      <div class="chk-cell text-center" style="color:var(--muted);font-size:10px;font-family:monospace">Ph 2</div>
+      <div class="chk-cell text-center" style="color:var(--muted);font-size:10px;font-family:monospace">Ph 3</div>
+    </div>`;
+  items.forEach(item => {
+    html += `<div class="chk-row" style="grid-template-columns:1fr 72px 72px 72px">
+      <div class="chk-cell" style="font-size:11px">${item.label}</div>
+      ${[1,2,3].map(ph => {
+        const val = wp[item.key+'_'+ph] || '';
+        return `<div class="chk-cell d-flex justify-content-center align-items-center">
+          <div class="yn-group">
+            <button class="yn-btn ${val==='Y'?'y-active':''}" onclick="toggleWorkPrep('${item.key}',${ph},'Y')">Y</button>
+            <button class="yn-btn ${val==='N'?'n-active':''}" onclick="toggleWorkPrep('${item.key}',${ph},'N')">N</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  html += `</div>`;
+  el.innerHTML += html;
+}
+
+// ── Foto ──────────────────────────────────────────────────────
+function renderFoto(el) {
+  el.innerHTML = `
+  <div class="tt-alert warn mb-3"><i class="bi bi-image"></i><span>Upload foto ke Google Drive — link disimpan di Sheet FOTOS.</span></div>
+  <div class="row g-2 mb-3">
+    <div class="col-6"><button class="btn btn-orange w-100" onclick="uploadFoto('Progres')"><i class="bi bi-camera me-1"></i>Progres</button></div>
+    <div class="col-6"><button class="btn btn-teal w-100" onclick="uploadFoto('QC')"><i class="bi bi-clipboard-check me-1"></i>QC</button></div>
+  </div>
+  <p class="text-muted text-center small py-4"><i class="bi bi-image fs-3 d-block mb-2 opacity-25"></i>Fitur upload foto tersedia setelah app terhubung ke Google Drive.</p>`;
+}
+
+function uploadFoto(cat) { toast('Fitur upload tersedia setelah terhubung ke GAS+Drive'); }
+
+// ── Modifikasi ────────────────────────────────────────────────
+function renderMod(el) {
+  const mods = state.detailData.modif;
+  let html = `
+  <div class="tt-alert warn mb-3">
+    <i class="bi bi-exclamation-triangle-fill" style="color:var(--yellow)"></i>
+    <span>Catat penyesuaian di luar gambar kerja yang sudah disetujui pihak berwenang. Wajib lampirkan bukti.</span>
+  </div>
+  <button class="btn w-100 mb-3 fw-700" style="background:var(--yellow);color:#000;border-radius:10px;padding:11px" onclick="showModForm()">
+    <i class="bi bi-plus-lg me-1"></i>Catat Modifikasi
+  </button>
+  <div id="mod-form" class="d-none mb-3 p-3" style="background:var(--panel);border-radius:12px;border:1px solid rgba(234,179,8,.3)">
+    <div class="section-label">DESKRIPSI MODIFIKASI</div>
+    <textarea id="mod-desc" class="form-control mb-2" rows="3" placeholder="Apa yang diubah dari gambar kerja dan kenapa?"></textarea>
+    <div class="section-label">DISAHKAN OLEH (Nama & Jabatan)</div>
+    <input id="mod-by" class="form-control mb-2" placeholder="mis. Production Foreman">
+    <div class="section-label">BUKTI PERSETUJUAN (URL foto/drive)</div>
+    <input id="mod-url" class="form-control mb-3" placeholder="https://drive.google.com/...">
+    <div class="d-flex gap-2">
+      <button class="btn btn-ghost flex-grow-1" onclick="hideModForm()">Batal</button>
+      <button class="btn flex-grow-1 fw-700" style="background:var(--yellow);color:#000;border-radius:10px" onclick="saveMod()">Simpan</button>
+    </div>
+  </div>`;
+  if (!mods.length) {
+    html += `<p class="text-center text-muted small py-4">Belum ada modifikasi tercatat untuk unit ini.</p>`;
+  } else {
+    mods.forEach(m => {
+      html += `<div class="mod-card mb-2">
+        <div class="d-flex justify-content-between mb-2">
+          <span class="badge-mod"><i class="bi bi-exclamation-triangle-fill me-1"></i>DI LUAR GAMBAR KERJA</span>
+          <span class="font-mono" style="font-size:10px;color:var(--muted)">${m.CREATED_AT||''}</span>
+        </div>
+        <p style="font-size:13px;margin-bottom:8px">${m.DESKRIPSI}</p>
+        <div style="font-size:11px;color:var(--teal)"><i class="bi bi-shield-check me-1"></i>Disahkan oleh ${m.DISAHKAN_OLEH}</div>
+        ${m.BUKTI_URL ? `<a href="${m.BUKTI_URL}" target="_blank" class="d-block mt-1 font-mono" style="font-size:10px;color:var(--orange)"><i class="bi bi-paperclip me-1"></i>Lihat Bukti</a>` : ''}
+      </div>`;
+    });
+  }
+  el.innerHTML = html;
+}
+function showModForm() { document.getElementById('mod-form').classList.remove('d-none'); }
+function hideModForm() { document.getElementById('mod-form').classList.add('d-none'); }
+async function saveMod() {
+  const desc = document.getElementById('mod-desc').value.trim();
+  const by = document.getElementById('mod-by').value.trim();
+  const url = document.getElementById('mod-url').value.trim();
+  if (!desc || !by) { toast('Deskripsi dan nama pengesah wajib diisi'); return; }
+  await api('modif.create', {unitId: state.currentUnit.UNIT_ID, deskripsi: desc, disahkanOleh: by, buktiUrl: url, createdBy: state.user.name});
+  toast('Modifikasi tersimpan ✓');
+  await loadDetailData(state.currentUnit.UNIT_ID);
+  renderMod(document.getElementById('detail-content'));
+}
+
+// ══════════════════════════════════════════════════════════════
+// SAVE HANDLERS
+// ══════════════════════════════════════════════════════════════
+function getWorkers(prefix) {
+  return Array.from(document.querySelectorAll(`[id^="wbtn-${prefix}-"]`))
+    .filter(b => b.classList.contains('active')).map(b => b.dataset.name);
+}
+function getShiftVal(prefix) {
+  const act = document.querySelector(`[id^="sbtn-${prefix}-"].active`);
+  return act ? act.dataset.shift : '';
+}
+
+async function saveStrip(stripId, nomThick) {
+  const vals = {};
+  let ok = true;
+  ['A','B','C'].forEach(ph => {
+    const v = document.getElementById(`strip-${stripId}-ph${ph}`)?.value;
+    if (!v) ok = false;
+    vals[ph] = parseFloat(v);
+  });
+  if (!ok) { toast('Isi semua Phase A, B, C terlebih dahulu'); return; }
+  const shift = getShiftVal('strip-'+stripId);
+  const workers = getWorkers('strip-'+stripId);
+  const date = document.getElementById(`strip-${stripId}-date`)?.value || '';
+  for (const ph of ['A','B','C']) {
+    await api('strips.upsert', {
+      unitId: state.currentUnit.UNIT_ID, stripId, phase: ph,
+      actual: vals[ph], date, shift, workers, updatedBy: state.user.name,
+    });
+  }
+  toast(`${stripId} tersimpan ✓`);
+  await loadDetailData(state.currentUnit.UNIT_ID);
+  render0501(document.getElementById('detail-content'));
+}
+
+async function saveCylinder(cylId) {
+  const shift = getShiftVal('cyl-'+cylId);
+  const workers = getWorkers('cyl-'+cylId);
+  const date = document.getElementById(`cyl-${cylId}-date`)?.value || '';
+  for (const ph of ['A','B','C']) {
+    const diam = parseFloat(document.getElementById(`cyl-${cylId}-ph${ph}-diam`)?.value);
+    const height = parseFloat(document.getElementById(`cyl-${cylId}-ph${ph}-height`)?.value);
+    if (!diam || !height) { toast(`Isi Diam & Height Phase ${ph}`); return; }
+    await api('cylinders.upsert', {
+      unitId: state.currentUnit.UNIT_ID, cylId, phase: ph,
+      actualDiam: diam, actualHeight: height, date, shift, workers, updatedBy: state.user.name,
+    });
+  }
+  toast(`${cylId} tersimpan ✓`);
+  await loadDetailData(state.currentUnit.UNIT_ID);
+  render0501(document.getElementById('detail-content'));
+}
+
+const windNTState = {};
+function toggleNT(wt, ph, type) {
+  const key = wt+'_'+ph;
+  if (!windNTState[key]) windNTState[key] = {N:false,T:false};
+  windNTState[key][type] = !windNTState[key][type];
+  if (type==='N' && windNTState[key].N) windNTState[key].T = false;
+  if (type==='T' && windNTState[key].T) windNTState[key].N = false;
+  document.getElementById(`w-${wt}-${ph}-normal`).classList.toggle('normal-active', windNTState[key].N);
+  document.getElementById(`w-${wt}-${ph}-tight`).classList.toggle('tight-active', windNTState[key].T);
+}
+
+const windWorkers = {};
+function toggleWorkerW(wt, ph, nama) {
+  const key = wt+'_'+ph;
+  if (!windWorkers[key]) windWorkers[key] = [];
+  const idx = windWorkers[key].indexOf(nama);
+  if (idx >= 0) windWorkers[key].splice(idx,1); else if (windWorkers[key].length < 4) windWorkers[key].push(nama);
+  document.querySelectorAll(`#w-exec-${wt}-${ph} .worker-btn`).forEach(b => {
+    b.classList.toggle('active', windWorkers[key].includes(b.textContent.trim()));
+  });
+}
+
+async function saveWinding(wt) {
+  const date = document.getElementById(`wind-${wt}-date`)?.value || '';
+  const checkedByQC = document.getElementById(`w-${wt}-qc`)?.checked;
+  for (const ph of [1,2,3]) {
+    const key = wt+'_'+ph;
+    const nt = windNTState[key] || {N:false,T:false};
+    const ra = document.getElementById(`w-${wt}-${ph}-ra`)?.value || '';
+    const al = document.getElementById(`w-${wt}-${ph}-al`)?.value || '';
+    const workers = windWorkers[key] || [];
+    await api('windings.upsert', {
+      unitId: state.currentUnit.UNIT_ID, windingType: wt, phaseNum: ph,
+      normal: nt.N, tight: nt.T, reduceAdd: ra, alignment: al,
+      workers, date, checkedByQC, updatedBy: state.user.name,
+    });
+  }
+  toast(`Winding ${wt} tersimpan ✓`);
+  await loadDetailData(state.currentUnit.UNIT_ID);
+  render0502(document.getElementById('detail-content'));
+}
+
+async function toggleFinal(itemKey, phase, val) {
+  const existing = state.detailData.finalData[itemKey+'_'+phase];
+  const newVal = existing && existing.YES_NO === val ? '' : val;
+  await api('final.upsert', {unitId: state.currentUnit.UNIT_ID, itemKey, phase, yesNo: newVal, nominal:'', actual:'', updatedBy: state.user.name});
+  await loadDetailData(state.currentUnit.UNIT_ID);
+  render0503(document.getElementById('detail-content'));
+}
+
+async function saveFinalMeasure(itemKey, phase) {
+  const nom = document.getElementById(`f-${itemKey}-${phase}-nom`)?.value || '';
+  const act = document.getElementById(`f-${itemKey}-${phase}-act`)?.value || '';
+  await api('final.upsert', {unitId: state.currentUnit.UNIT_ID, itemKey, phase, yesNo:'', nominal: nom, actual: act, updatedBy: state.user.name});
+  state.detailData.finalData[itemKey+'_'+phase] = {NOMINAL:nom, ACTUAL:act};
+}
+
+async function toggleWorkPrep(itemKey, phase, val) {
+  const existing = state.detailData.workprep[itemKey+'_'+phase];
+  const newVal = existing === val ? '' : val;
+  await api('workprep.upsert', {unitId: state.currentUnit.UNIT_ID, itemKey, phase, yesNo: newVal, updatedBy: state.user.name});
+  await loadDetailData(state.currentUnit.UNIT_ID);
+  render0504(document.getElementById('detail-content'));
+}
+
+// ══════════════════════════════════════════════════════════════
+// SHIFT PICKER (helper HTML)
+// ══════════════════════════════════════════════════════════════
+const SHIFTS = {Pagi:['Alan','Arman','Danni','Imam'],Malam:['Edi','Eko','Honda','Widodo']};
+
+function allWorkers() { return [...SHIFTS.Pagi, ...SHIFTS.Malam]; }
+
+function shiftPickerHtml(prefix, saved) {
+  const savedShift = saved ? saved.SHIFT : '';
+  const savedWorkers = saved ? [saved.WORKER1,saved.WORKER2,saved.WORKER3,saved.WORKER4].filter(Boolean) : [];
+  let html = `<div class="input-nom">Tanggal</div>
+    <input type="text" class="form-control form-control-sm mb-2" id="${prefix}-date" placeholder="DD/MM/YYYY" value="${saved?saved.DATE:''}">
+    <div class="input-nom mb-1">Shift & Executor</div>
+    <div class="d-flex gap-2 mb-2">`;
+  ['Pagi','Malam'].forEach(s => {
+    html += `<button id="sbtn-${prefix}-${s}" class="shift-btn ${savedShift===s?'active':''}" data-shift="${s}" onclick="selectShift('${prefix}','${s}')">
+      <i class="bi bi-${s==='Pagi'?'sun':'moon'}-fill" style="font-size:12px"></i> Shift ${s}
+    </button>`;
+  });
+  html += `</div><div class="d-flex flex-wrap gap-1 mb-2" id="wbox-${prefix}">`;
+  allWorkers().forEach(nama => {
+    const active = savedWorkers.includes(nama);
+    html += `<button id="wbtn-${prefix}-${nama}" class="worker-btn ${active?'active':''}" data-name="${nama}" onclick="toggleWorkerBtn('${prefix}','${nama}')">${nama}</button>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function selectShift(prefix, shift) {
+  ['Pagi','Malam'].forEach(s => {
+    document.getElementById(`sbtn-${prefix}-${s}`)?.classList.toggle('active', s===shift);
+  });
+}
+function toggleWorkerBtn(prefix, nama) {
+  const btn = document.getElementById(`wbtn-${prefix}-${nama}`);
+  const activeCount = document.querySelectorAll(`[id^="wbtn-${prefix}-"].active`).length;
+  if (!btn.classList.contains('active') && activeCount >= 4) { toast('Maksimal 4 executor'); return; }
+  btn.classList.toggle('active');
+}
+
+// ══════════════════════════════════════════════════════════════
+// ROW TOGGLE
+// ══════════════════════════════════════════════════════════════
+function toggleRow(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const body = el.querySelector('.row-body');
+  if (!body) return;
+  body.classList.toggle('d-none');
+  const icon = el.querySelector('.bi-chevron-down');
+  if (icon) icon.style.transform = body.classList.contains('d-none') ? '' : 'rotate(180deg)';
+}
+
+// ══════════════════════════════════════════════════════════════
+// ADD UNIT MODAL
+// ══════════════════════════════════════════════════════════════
+let nuStrips = [], nuCyls = [];
+const windingOrder = [];
+
+function showAddUnit() {
+  nuStrips = []; nuCyls = []; windingOrder.length = 0;
+  document.getElementById('strip-rows').innerHTML = '';
+  document.getElementById('cyl-rows').innerHTML = '';
+  document.getElementById('winding-order-preview').textContent = '';
+  document.querySelectorAll('#winding-picker button').forEach(b => {
+    b.style.background = ''; b.style.color = 'var(--muted)';
+  });
+  new bootstrap.Modal(document.getElementById('modal-add-unit')).show();
+}
+
+function toggleWinding(w) {
+  const idx = windingOrder.indexOf(w);
+  const btn = document.querySelector(`#winding-picker button[onclick="toggleWinding('${w}')"]`);
+  if (idx >= 0) {
+    windingOrder.splice(idx,1);
+    btn.style.background = ''; btn.style.color = 'var(--muted)';
+  } else {
+    windingOrder.push(w);
+    btn.style.background = 'var(--orange)'; btn.style.color = '#000';
+  }
+  document.getElementById('winding-order-preview').textContent = windingOrder.length ? 'Urutan: ' + windingOrder.join(' → ') : '';
+}
+
+function addStripRow() {
+  const n = nuStrips.length + 1;
+  const id = 'ns-'+n;
+  nuStrips.push(id);
+  const d = document.createElement('div');
+  d.className = 'd-flex align-items-center gap-2 mb-2';
+  d.id = id;
+  d.innerHTML = `<span class="font-mono fw-700" style="font-size:12px;width:36px;color:var(--orange)">S${n}</span>
+    <input type="number" step="0.01" inputmode="decimal" class="form-control form-control-sm" id="${id}-thick" placeholder="Nominal thickness (mm)">
+    <button class="btn btn-sm" style="color:var(--muted)" onclick="removeRow('${id}',nuStrips)"><i class="bi bi-trash"></i></button>`;
+  document.getElementById('strip-rows').appendChild(d);
+}
+
+function addCylRow() {
+  const n = nuCyls.length + 1;
+  const id = 'nc-'+n;
+  nuCyls.push(id);
+  const d = document.createElement('div');
+  d.className = 'row-item mb-2 p-2';
+  d.id = id;
+  d.innerHTML = `<div class="d-flex align-items-center gap-2 mb-1">
+    <span class="font-mono fw-700" style="font-size:12px;color:var(--orange)">A${n}</span>
+    <button class="btn btn-sm ms-auto" style="color:var(--muted)" onclick="removeRow('${id}',nuCyls)"><i class="bi bi-trash"></i></button>
+  </div>
+  <div class="row g-2">
+    <div class="col-6"><div class="input-nom">Nom. Diameter (mm)</div><input type="number" inputmode="decimal" class="form-control form-control-sm" id="${id}-diam" placeholder="1012"></div>
+    <div class="col-6"><div class="input-nom">Nom. Height (mm)</div><input type="number" inputmode="decimal" class="form-control form-control-sm" id="${id}-height" placeholder="1836"></div>
+  </div>`;
+  document.getElementById('cyl-rows').appendChild(d);
+}
+
+function removeRow(id, arr) {
+  const idx = arr.indexOf(id);
+  if (idx >= 0) arr.splice(idx,1);
+  document.getElementById(id)?.remove();
+}
+
+async function submitAddUnit() {
+  const trafoNo = document.getElementById('nu-trafo-no').value.trim();
+  const serialNo = document.getElementById('nu-serial-no').value.trim();
+  const subtitle = document.getElementById('nu-subtitle').value.trim();
+  if (!trafoNo || !serialNo || !subtitle) { toast('Trafo No, Serial No, dan Subtitle wajib diisi'); return; }
+  if (!windingOrder.length) { toast('Pilih minimal 1 jenis winding'); return; }
+  if (!nuStrips.length) { toast('Tambah minimal 1 Strip Assy dari drawing'); return; }
+
+  const strips = nuStrips.map((id,i) => ({nomThick: parseFloat(document.getElementById(id+'-thick')?.value) || 3.0}));
+  const cylinders = nuCyls.map((id,i) => ({
+    nomDiam: parseFloat(document.getElementById(id+'-diam')?.value) || 1000,
+    nomHeight: parseFloat(document.getElementById(id+'-height')?.value) || 1800,
+  }));
+
+  await api('units.create', {
+    trafoNo, serialNo, subtitle,
+    pemilik: document.getElementById('nu-pemilik').value.trim(),
+    lokasi: document.getElementById('nu-lokasi').value.trim(),
+    daya: document.getElementById('nu-daya').value.trim(),
+    status: document.getElementById('nu-status').value,
+    strips, cylinders, windingTypes: windingOrder,
+    createdBy: state.user.name,
+  });
+  toast('Unit berhasil ditambahkan ✓');
+  bootstrap.Modal.getInstance(document.getElementById('modal-add-unit'))?.hide();
+  await loadUnits();
+}
+
+// ══════════════════════════════════════════════════════════════
+// REFERENSI
+// ══════════════════════════════════════════════════════════════
+async function doRefSearch() {
+  const q = document.getElementById('ref-search-input').value.trim();
+  const container = document.getElementById('ref-results');
+  if (!q) { container.innerHTML = `<div class="text-center py-5" style="color:var(--muted)"><i class="bi bi-archive fs-1 d-block mb-2 opacity-25"></i><small>Masukkan No. Trafo untuk lihat unit serial terdahulu.</small></div>`; return; }
+  const results = await api('ref.search', {trafoNo: q});
+  if (!results.length) { container.innerHTML = `<div class="text-center py-5" style="color:var(--muted)"><i class="bi bi-search fs-1 d-block mb-2 opacity-25"></i><small>Tidak ditemukan riwayat untuk "${q}".</small></div>`; return; }
+  container.innerHTML = `<div class="section-label">${results.length} UNIT DITEMUKAN</div>` +
+  results.map(u => `
+    <div class="row-item mb-2">
+      <div class="row-header" onclick="toggleRow('ref-${u.UNIT_ID}')">
+        <div>
+          <div class="font-mono" style="font-size:10px;color:var(--muted)">SN: ${u.SERIAL_NO}</div>
+          <div class="fw-600" style="font-size:13px">${u.SUBTITLE||u.PEMILIK}</div>
+          <div class="font-mono" style="font-size:10px;color:var(--teal)">Selesai ${u.CREATED_AT||''}</div>
+        </div>
+        <i class="bi bi-chevron-right ms-auto" style="color:var(--muted)"></i>
+      </div>
+      <div class="row-body d-none" id="ref-${u.UNIT_ID}">
+        <div class="section-label">BOM RINGKAS</div>
+        <div class="p-2 mb-2" style="background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:12px">
+          Strip: ${u.bom.strips.length} pcs · Cylinder: ${u.bom.cylinders.length} pcs<br>
+          Winding: ${u.bom.windingTypes.join(', ')}
+        </div>
+        <div class="section-label">MODIFIKASI TERCATAT</div>
+        ${!u.modifikasi.length ? `<p class="small text-muted">Tidak ada modifikasi — sesuai gambar kerja.</p>` :
+          u.modifikasi.map(m => `<div class="mod-card mb-2">
+            <p style="font-size:12px;margin-bottom:4px">${m.DESKRIPSI}</p>
+            <div style="font-size:11px;color:var(--teal)"><i class="bi bi-shield-check me-1"></i>${m.DISAHKAN_OLEH} · ${m.CREATED_AT}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  initLoginNames();
+});
+</script>
+</body>
+</html>
